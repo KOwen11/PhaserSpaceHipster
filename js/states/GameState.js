@@ -40,7 +40,11 @@ SpaceHipster.GameState = {
     this.game.physics.arcade.enable(this.player);
     this.player.body.collideWorldBounds = true;
     this.player.customParams = {score: 0};
+		console.log(this.player.customParams.score);
+		
     this.player.customParams = {hp: 3};
+    
+    
     
     //add bullets
     this.initBullets();
@@ -60,16 +64,15 @@ SpaceHipster.GameState = {
 		this.startText.anchor.setTo(0.5);
 		this.removeStartText = this.game.time.events.loop(Phaser.Timer.SECOND*2, this.clearStartText, this);
     
-    //scoreboard text
+		//scoreboard text
     var style2 = {font: '20px Arial', fill: '#fff'};
+    //WHY WON'T YOU WORK?!?
 		this.scoreText = this.game.add.text(this.game.world.width*0.95, this.game.world.height*0.05, 'Score: ' + this.player.customParams.score, style2);
+		console.log(this.player.customParams.score);
 		this.scoreText.anchor.setTo(1);
-		
-
-
-    
+		 
   },
-  addPoints: function(x){
+  addPoints: function(){
     this.player.customParams.score += 1;
   },
   refreshScore: function(){
@@ -79,10 +82,12 @@ SpaceHipster.GameState = {
   clearStartText: function(){
     this.startText.setText('');
   },
+  
   update: function() {
     this.game.physics.arcade.overlap(this.playerBullets, this.enemies, this.damageEnemy, null, this);
     this.game.physics.arcade.overlap(this.playerBullets, this.enemies, this.enemies.hitAnimation);
     this.refreshScore();
+    //this.scoreText.text = 'Score: ' + this.player.customParams.score;
     this.player.body.velocity.x = 0;
     
     if(this.cursors.left.isDown){
@@ -164,7 +169,7 @@ SpaceHipster.GameState = {
       enemy = new SpaceHipster.Enemy(this.game, 100, 100, this.rndEnemyKey, this.rndHp, []);
       this.enemies.add(enemy);
       //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-      console.log(enemy.health);
+      //console.log(enemy.health);
     }else {
       //var enemyChildIndex = this.enemies.getAt(this.getRandomInt);
       //var enemyResetHp;
@@ -181,7 +186,7 @@ SpaceHipster.GameState = {
       
       enemy.reset(100,100, resetHp);
       //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-      console.log(enemy.health);
+      //console.log(enemy.health);
     }
 
     enemy.body.velocity.x = 100;
@@ -191,7 +196,7 @@ SpaceHipster.GameState = {
 
   damageEnemy: function(bullet, enemy){
     //apply damage
-    enemy.damage(2);
+    enemy.damage(3);
     enemy.animations.play('getHit');
     //kill the bullet sprite
     bullet.kill();
