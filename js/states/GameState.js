@@ -39,10 +39,11 @@ SpaceHipster.GameState = {
     this.player.anchor.setTo(0.5);
     this.game.physics.arcade.enable(this.player);
     this.player.body.collideWorldBounds = true;
-    this.player.customParams = {score: 0};
+    this.player.customParams = {score: 0, hp: 3};
 		console.log(this.player.customParams.score);
-		
-    this.player.customParams = {hp: 3};
+		//DON'T FREAKING DO THIS!!! 
+		//this.player.customParams = {hp:3};
+    
     
     
     
