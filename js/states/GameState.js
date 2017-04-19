@@ -40,7 +40,7 @@ SpaceHipster.GameState = {
     this.game.physics.arcade.enable(this.player);
     this.player.body.collideWorldBounds = true;
     this.player.customParams = {score: 0, hp: 3};
-		console.log(this.player.customParams.score);
+    
 		//DON'T FREAKING DO THIS!!! 
 		//this.player.customParams = {hp:3};
     
@@ -69,7 +69,7 @@ SpaceHipster.GameState = {
     var style2 = {font: '20px Arial', fill: '#fff'};
     //WHY WON'T YOU WORK?!?
 		this.scoreText = this.game.add.text(this.game.world.width*0.95, this.game.world.height*0.05, 'Score: ' + this.player.customParams.score, style2);
-		console.log(this.player.customParams.score);
+
 		this.scoreText.anchor.setTo(1);
 		 
   },
@@ -112,6 +112,7 @@ SpaceHipster.GameState = {
     this.playerBullets.enableBody = true;
     
   },
+  
   createPlayerBullet: function(){
     var bullet = this.playerBullets.getFirstExists(false);
     
@@ -149,12 +150,12 @@ SpaceHipster.GameState = {
 
   randEnemy: function(){
     this.rnd = this.getRandomInt(1, 4);
-    this.hpMultiplier = 3;
+    this.hpMultiplier = 4;
     this.rndHp = this.rnd * this.hpMultiplier;
 
     if(this.rnd == 1){
       this.rndEnemyKey = 'greenEnemy';
-    }else if(this.rnd == 2){
+    }else if(this.rnd ==2 ){
       this.rndEnemyKey = 'yellowEnemy';
     }else if(this.rnd == 3){
       this.rndEnemyKey = 'redEnemy';
@@ -175,7 +176,7 @@ SpaceHipster.GameState = {
       //var enemyChildIndex = this.enemies.getAt(this.getRandomInt);
       //var enemyResetHp;
       enemy = this.enemies.getAt(this.getRandomInt(0, 50));
-      console.log(enemy.key);
+      //console.log(enemy.key);
       var resetHp = 0;
       if(enemy.key == 'greenEnemy'){
         resetHp = 1 * this.hpMultiplier;
@@ -197,17 +198,13 @@ SpaceHipster.GameState = {
 
   damageEnemy: function(bullet, enemy){
     //apply damage
-    enemy.damage(3);
-    enemy.animations.play('getHit');
-    //kill the bullet sprite
+    enemy.damage(2);
     bullet.kill();
-    //console.log(this.enemy.health);
-    //add a point and update score if this also kills the enemy
     if(enemy.health<=0){
       this.addPoints();
-      
     }
   },
+
   getRandomInt: function (min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
