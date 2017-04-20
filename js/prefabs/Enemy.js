@@ -11,7 +11,7 @@ SpaceHipster.Enemy = function(game, x, y, key, health, enemyBullets, shootHz){
     this.anchor.setTo(0.5);
     this.health = health;
     
-    
+
     this.enemyBullets = enemyBullets;
     
     this.enemyTimer = this.game.time.create(false);
@@ -64,7 +64,7 @@ SpaceHipster.Enemy.prototype.damage = function(amount){
   console.log(this.health);
   this.play('getHit');
   if(this.health <= 0){
-      
+      SpaceHipster.GameState.enemyExplode.play();
       var emitter = this.game.add.emitter(this.x, this.y, 100);
       emitter.makeParticles('enemyParticle');
       emitter.minParticleSpeed.setTo(-200, -200);
@@ -97,8 +97,10 @@ SpaceHipster.Enemy.prototype.shoot = function() {
   if(!bullet){
       bullet = new SpaceHipster.EnemyBullet(this.game, this.x, this.bottom);
       this.enemyBullets.add(bullet);
+
   }else {
       bullet.reset(this.x, this.y);
+
   }
   bullet.body.velocity.y = 100;
   

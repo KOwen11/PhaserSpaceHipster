@@ -75,10 +75,13 @@ SpaceHipster.GameState = {
     
     //audio
     this.youDied = this.add.audio('youDied');
-    this.greenAudio = this.add.audio('greenAudio');
-    this.yellowAudio = this.add.audio('yellowAudio');
-    this.redAudio = this.add.audio('redAudio');
-
+    this.enemySpawn = this.add.audio('enemySpawn');
+    this.playerLaser = this.add.audio('playerGun');
+    this.laser2 = this.add.audio('laser2');
+    this.laser3 = this.add.audio('laser3');
+    this.enemyExplode = this.add.audio('enemyExplode');
+    this.explosion = this.add.audio('explosion');
+    
   },
   
   update: function() {
@@ -117,8 +120,13 @@ SpaceHipster.GameState = {
   
   schedulePlayerShooting: function(){
     this.createPlayerBullet();
+    
     //console.log(this.shootHz);
     this.playerTimer.add(Phaser.Timer.SECOND / 5, this.schedulePlayerShooting, this);
+  },
+  
+  playLaser: function(){
+    this.playerLaser.play();
   },
   
   clearStartText: function(){
@@ -152,17 +160,16 @@ SpaceHipster.GameState = {
   },
   
   createEnemyBullets: function(){
-    if(!this.isPlayerAlive){
-      var enemyBullet = this.enemyBullets.getFirstExists(false);
+    
+    var enemyBullet = this.enemyBullets.getFirstExists(false);
+    
+    if(!enemyBullet){
+      enemyBullet = new SpaceHipster.EnemyBullet(this.game, this.Enemy.x, this.Enemy.bottom);
+    }else{
+      enemyBullet.reset(this.Enemy.x, this.Enemy.bottom);
+    }
+    enemyBullet.body.velocity.y = this.BULLET_SPEED * -1;
       
-      if(!enemyBullet){
-        enemyBullet = new SpaceHipster.PlayerBullet(this.game, this.Enemy.x, this.Enemy.bottom);
-        this.enemyBullets.add(enemyBullet);
-      }else{
-        enemyBullet.reset(this.Enemy.x, this.Enemy.bottom);
-      }
-      enemyBullet.body.velocity.y = this.BULLET_SPEED * -1;
-    }  
   },
   
   initEnemies: function(){
@@ -193,18 +200,16 @@ SpaceHipster.GameState = {
       var enemy = this.enemies.getFirstExists(false);
       this.randEnemy();
       
-      //if you change this, remember to change ln:171 ffs!
-      if(this.enemies.children.length < 20){
-        //console.log(this.rnd);
+
+      if(this.enemies.children.length < 50){
+
         enemy = new SpaceHipster.Enemy(this.game, 100, 100, this.rndEnemyKey, this.rndHp, this.enemyBullets, this.rnd);
         this.enemies.add(enemy);
-        //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-        //console.log(enemy.health);
+        this.enemySpawn.play();
       }else {
-        //var enemyChildIndex = this.enemies.getAt(this.getRandomInt);
-        //var enemyResetHp;
-        enemy = this.enemies.getAt(this.getRandomInt(0, 20));
-        //console.log(enemy.key);
+
+        enemy = this.enemies.getAt(this.getRandomInt(0, 50));
+
         var resetHp = 0;
         if(enemy.key == 'greenEnemy'){
           resetHp = 1 * this.hpMultiplier;
@@ -216,8 +221,7 @@ SpaceHipster.GameState = {
         
         enemy.reset(100,100, resetHp);
         enemy.enemyTimer.resume();
-        //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-        //console.log(enemy.health);
+        this.enemySpawn.play();
       }
     
 
@@ -263,6 +267,7 @@ SpaceHipster.GameState = {
   resetPlayer: function() {
     this.player.reset(this.game.world.centerX, this.game.world.height -50);
     this.playerTimer.resume();
+    this.explosion.play();
     var emitter = this.game.add.emitter(this.x, this.y, 150);
     emitter.makeParticles('enemyParticle');
     emitter.minParticleSpeed.setTo(-500, -500);
