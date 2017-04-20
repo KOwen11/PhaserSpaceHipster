@@ -23,7 +23,7 @@ SpaceHipster.GameState = {
     this.load.spritesheet('yellowEnemy', 'assets/images/yellow_enemy.png', 50, 46, 3, 1, 1);   
     this.load.spritesheet('redEnemy', 'assets/images/red_enemy.png', 50, 46, 3, 1, 1);   
     this.load.spritesheet('greenEnemy', 'assets/images/green_enemy.png', 50, 46, 3, 1, 1);   
-
+    this.load.audio('youDied', ['assets/audio/youDied.mp3', 'assets/audio/youDied.ogg']);
     
   },
   //executed after everything is loaded
@@ -35,24 +35,27 @@ SpaceHipster.GameState = {
     this.background.autoScroll(0, 30);
     
     //add the player
-    this.player = this.add.sprite(this.game.world.centerX, this.game.world.height -50, 'player');
+    this.player = this.add.sprite(this.game.world.centerX, this.game.world.height -50, 'player', 3);
     this.player.anchor.setTo(0.5);
     this.game.physics.arcade.enable(this.player);
     this.player.body.collideWorldBounds = true;
-    this.player.customParams = {score: 0, hp: 3};
+    this.player.customParams = {score: 0};
+    this.player.health = 3;
+
+    
     
 		//DON'T FREAKING DO THIS!!! 
 		//this.player.customParams = {hp:3};
-    
-    
-    
     
     //add bullets
     this.initBullets();
     this.initEnemyBullets();
     this.playerShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/3, this.createPlayerBullet, this);
     //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
+    //this.playerTimer = this.game.time.create(false);
+    //this.playerTimer.start();
     
+    //this.schedulePlayerShooting();
     
     //initiate enemies
     this.initEnemies();
@@ -65,14 +68,24 @@ SpaceHipster.GameState = {
 		this.startText.anchor.setTo(0.5);
 		this.removeStartText = this.game.time.events.loop(Phaser.Timer.SECOND*2, this.clearStartText, this);
     
+    
+    
 		//scoreboard text
     var style2 = {font: '20px Arial', fill: '#fff'};
-    //WHY WON'T YOU WORK?!?
 		this.scoreText = this.game.add.text(this.game.world.width*0.95, this.game.world.height*0.05, 'Score: ' + this.player.customParams.score, style2);
 
 		this.scoreText.anchor.setTo(1);
 		 
+    
+    
+    
+    //you died audio
+    this.youDied = this.add.audio('youDied');
+    
   },
+  
+
+  
   addPoints: function(){
     this.player.customParams.score += 1;
   },
@@ -85,11 +98,14 @@ SpaceHipster.GameState = {
   },
   
   update: function() {
+    this.game.physics.arcade.overlap(this.enemyBullets, this.player, this.damagePlayer);
     this.game.physics.arcade.overlap(this.playerBullets, this.enemies, this.damageEnemy, null, this);
     this.game.physics.arcade.overlap(this.playerBullets, this.enemies, this.enemies.hitAnimation);
     this.refreshScore();
     //this.scoreText.text = 'Score: ' + this.player.customParams.score;
     this.player.body.velocity.x = 0;
+    
+    
     
     if(this.cursors.left.isDown){
       this.player.body.velocity.x = -this.PLAYER_SPEED;
@@ -114,6 +130,7 @@ SpaceHipster.GameState = {
   },
   
   createPlayerBullet: function(){
+    
     var bullet = this.playerBullets.getFirstExists(false);
     
     if(!bullet) {
@@ -131,26 +148,31 @@ SpaceHipster.GameState = {
   },
   
   createEnemyBullets: function(){
-    var enemyBullet = this.enemyBullets.getFirstExists(false);
-    
-    if(!enemyBullet){
-      enemyBullet = new SpaceHipster.PlayerBullet(this.game, this.Enemy.x, this.Enemy.bottom);
-      this.enemyBullets.add(enemyBullet);
-    }else{
-      enemyBullet.reset(this.Enemy.x, this.Enemy.bottom);
-    }
-    enemyBullet.body.velocity.y = this.BULLET_SPEED * -1;
+    if(!this.isPlayerAlive){
+      var enemyBullet = this.enemyBullets.getFirstExists(false);
+      
+      if(!enemyBullet){
+        enemyBullet = new SpaceHipster.PlayerBullet(this.game, this.Enemy.x, this.Enemy.bottom);
+        this.enemyBullets.add(enemyBullet);
+      }else{
+        enemyBullet.reset(this.Enemy.x, this.Enemy.bottom);
+      }
+      enemyBullet.body.velocity.y = this.BULLET_SPEED * -1;
+    }  
   },
   
   initEnemies: function(){
     this.enemies = this.add.group();
     this.enemies.enableBody = true;
     
+    this.enemyBullets = this.add.group();
+    this.enemyBullets.enableBody = true;
+    
   },
 
   randEnemy: function(){
     this.rnd = this.getRandomInt(1, 4);
-    this.hpMultiplier = 4;
+    this.hpMultiplier = 3;
     this.rndHp = this.rnd * this.hpMultiplier;
 
     if(this.rnd == 1){
@@ -163,39 +185,70 @@ SpaceHipster.GameState = {
   },
   
   createEnemy: function(){
-    var enemy = this.enemies.getFirstExists(false);
-    this.randEnemy();
-    
-    //if you change this, remember to change ln:171 ffs!
-    if(this.enemies.children.length < 50){
-      enemy = new SpaceHipster.Enemy(this.game, 100, 100, this.rndEnemyKey, this.rndHp, []);
-      this.enemies.add(enemy);
-      //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-      //console.log(enemy.health);
-    }else {
-      //var enemyChildIndex = this.enemies.getAt(this.getRandomInt);
-      //var enemyResetHp;
-      enemy = this.enemies.getAt(this.getRandomInt(0, 50));
-      //console.log(enemy.key);
-      var resetHp = 0;
-      if(enemy.key == 'greenEnemy'){
-        resetHp = 1 * this.hpMultiplier;
-      }else if(enemy.key == 'yellowEnemy'){
-        resetHp = 2 * this.hpMultiplier;
-      }else if(enemy.key == 'redEnemy'){
-        resetHp = 3 * this.hpMultiplier;
-      }
+
+      var enemy = this.enemies.getFirstExists(false);
+      this.randEnemy();
       
-      enemy.reset(100,100, resetHp);
-      //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-      //console.log(enemy.health);
-    }
+      //if you change this, remember to change ln:171 ffs!
+      if(this.enemies.children.length < 50){
+        //console.log(this.rnd);
+        enemy = new SpaceHipster.Enemy(this.game, 100, 100, this.rndEnemyKey, this.rndHp, this.enemyBullets, this.rnd);
+        this.enemies.add(enemy);
+        //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
+        //console.log(enemy.health);
+      }else {
+        //var enemyChildIndex = this.enemies.getAt(this.getRandomInt);
+        //var enemyResetHp;
+        enemy = this.enemies.getAt(this.getRandomInt(0, 50));
+        //console.log(enemy.key);
+        var resetHp = 0;
+        if(enemy.key == 'greenEnemy'){
+          resetHp = 1 * this.hpMultiplier;
+        }else if(enemy.key == 'yellowEnemy'){
+          resetHp = 2 * this.hpMultiplier;
+        }else if(enemy.key == 'redEnemy'){
+          resetHp = 3 * this.hpMultiplier;
+        }
+        
+        enemy.reset(100,100, resetHp);
+        //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
+        //console.log(enemy.health);
+      }
+    
 
     enemy.body.velocity.x = 100;
     enemy.body.velocity.y = 20;
     
   },
 
+  damagePlayer: function(enemyBullet, player){
+
+    player.health -= 1;
+
+    enemyBullet.kill();
+    if(player.health <= 0){
+      SpaceHipster.GameState.killPlayer();
+
+    }
+  },
+  
+  killPlayer: function(){
+    var emitter = this.game.add.emitter(this.x, this.y, 100);
+    emitter.makeParticles('enemyParticle');
+    emitter.minParticleSpeed.setTo(-200, -200);
+    emitter.maxParticleSpeed.setTo(200, 200);
+    emitter.gravity = 0;
+    emitter.start(true, 500, null, 100);
+    this.player.kill();
+
+    this.youDied.play();
+    //you died text
+    var style3 = {font: '80px Arial', fill: 'red'};
+    this.youDiedText = this.game.add.text(this.game.world.width*0.5, this.game.world.height*0.5, 'YOU DIED', style3);
+    this.youDiedText.anchor.setTo(0.5);
+    this.restartTimer = this.game.time.events.loop(Phaser.Timer.SECOND*8,this.restart, this);
+  },
+  
   damageEnemy: function(bullet, enemy){
     //apply damage
     enemy.damage(2);
@@ -209,6 +262,10 @@ SpaceHipster.GameState = {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
+  },
+  
+  restart: function(){
+    this.game.state.restart();
   }
-
+  
 };
