@@ -20,6 +20,9 @@ SpaceHipster.GameState = {
   create: function() {
 
     
+    this.playerHealth = 3;
+    
+    
     //add the scrolling background
     this.background = this.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'space');
     this.background.autoScroll(0, 30);
@@ -30,7 +33,6 @@ SpaceHipster.GameState = {
     this.game.physics.arcade.enable(this.player);
     this.player.body.collideWorldBounds = true;
     this.player.customParams = {score: 0};
-    this.player.health = 3;
 
     
     
@@ -62,35 +64,21 @@ SpaceHipster.GameState = {
     
 		//scoreboard text
     var style2 = {font: '20px Arial', fill: '#fff'};
-		this.scoreText = this.game.add.text(this.game.world.width*0.95, this.game.world.height*0.05, 'Score: ' + this.player.customParams.score, style2);
+		this.scoreText = this.game.add.text(this.game.world.width*0.85, this.game.world.height*0.05, 'Score: ' + this.player.customParams.score, style2);
+		this.livesText = this.game.add.text(this.game.world.width*0.85, this.game.world.height*0.07, 'Lives: ' + this.playerHealth, style2);
 
-		this.scoreText.anchor.setTo(1);
+		this.scoreText.anchor.setTo(0);
+		this.livesText.anchor.setTo(0);
 		 
     
     
     
-    //you died audio
+    //audio
     this.youDied = this.add.audio('youDied');
-    
-  },
-  
+    this.greenAudio = this.add.audio('greenAudio');
+    this.yellowAudio = this.add.audio('yellowAudio');
+    this.redAudio = this.add.audio('redAudio');
 
-  
-  addPoints: function(){
-    this.player.customParams.score += 1;
-  },
-  refreshScore: function(){
-    this.scoreText.text = 'Score: ' + this.player.customParams.score;
-  },
-  
-  schedulePlayerShooting: function(){
-    this.createPlayerBullet();
-    //console.log(this.shootHz);
-    this.playerTimer.add(Phaser.Timer.SECOND / 5, this.schedulePlayerShooting, this);
-  },
-  
-  clearStartText: function(){
-    this.startText.setText('');
   },
   
   update: function() {
@@ -98,7 +86,7 @@ SpaceHipster.GameState = {
     this.game.physics.arcade.overlap(this.playerBullets, this.enemies, this.damageEnemy, null, this);
     this.game.physics.arcade.overlap(this.playerBullets, this.enemies, this.enemies.hitAnimation);
     this.refreshScore();
-    //this.scoreText.text = 'Score: ' + this.player.customParams.score;
+    
     this.player.body.velocity.x = 0;
     
     
@@ -118,6 +106,26 @@ SpaceHipster.GameState = {
       this.player.body.velocity.x = direction * this.PLAYER_SPEED;
     }
   },
+  
+  addPoints: function(){
+    this.player.customParams.score += 1;
+  },
+  refreshScore: function(){
+    this.scoreText.text = 'Score: ' + this.player.customParams.score;
+    this.livesText.text = 'Lives: ' + this.playerHealth;
+  },
+  
+  schedulePlayerShooting: function(){
+    this.createPlayerBullet();
+    //console.log(this.shootHz);
+    this.playerTimer.add(Phaser.Timer.SECOND / 5, this.schedulePlayerShooting, this);
+  },
+  
+  clearStartText: function(){
+    this.startText.setText('');
+  },
+  
+  
   
   initBullets: function(){
     this.playerBullets = this.add.group();
@@ -168,7 +176,7 @@ SpaceHipster.GameState = {
 
   randEnemy: function(){
     this.rnd = this.getRandomInt(1, 4);
-    this.hpMultiplier = 3;
+    this.hpMultiplier = 5;
     this.rndHp = this.rnd * this.hpMultiplier;
 
     if(this.rnd == 1){
@@ -186,7 +194,7 @@ SpaceHipster.GameState = {
       this.randEnemy();
       
       //if you change this, remember to change ln:171 ffs!
-      if(this.enemies.children.length < 50){
+      if(this.enemies.children.length < 20){
         //console.log(this.rnd);
         enemy = new SpaceHipster.Enemy(this.game, 100, 100, this.rndEnemyKey, this.rndHp, this.enemyBullets, this.rnd);
         this.enemies.add(enemy);
@@ -195,7 +203,7 @@ SpaceHipster.GameState = {
       }else {
         //var enemyChildIndex = this.enemies.getAt(this.getRandomInt);
         //var enemyResetHp;
-        enemy = this.enemies.getAt(this.getRandomInt(0, 50));
+        enemy = this.enemies.getAt(this.getRandomInt(0, 20));
         //console.log(enemy.key);
         var resetHp = 0;
         if(enemy.key == 'greenEnemy'){
@@ -214,28 +222,62 @@ SpaceHipster.GameState = {
     
 
     enemy.body.velocity.x = 100;
-    enemy.body.velocity.y = 20;
+    enemy.body.velocity.y = 50;
     
   },
+  
+  
 
   damagePlayer: function(enemyBullet, player){
-
-    player.health -= 1;
+    
+    SpaceHipster.GameState.playerHealth -= 1;
+    console.log(SpaceHipster.GameState.playerHealth);
 
     enemyBullet.kill();
-    if(player.health <= 0){
+    if(SpaceHipster.GameState.playerHealth <= 0){
       SpaceHipster.GameState.killPlayer();
+      console.log('killed');
+    }else if (SpaceHipster.GameState.playerHealth > 0){
+      SpaceHipster.GameState.resetPlayer();
+      SpaceHipster.GameState.resetEnemies();
 
+      console.log('reset');
     }
   },
   
-  killPlayer: function(){
-    var emitter = this.game.add.emitter(this.x, this.y, 100);
+  resetEnemies: function(){
+    var b = 0;
+    for(b; b< this.enemyBullets.children.length; b = b + 1){
+      var bulletToStop = this.enemyBullets.getAt(b);
+      bulletToStop.kill();
+    }
+    
+    var i = 0;
+    for(i; i<this.enemies.children.length ; i = i + 1){
+      var enemyToStop = this.enemies.getAt(i);
+      enemyToStop.damage(enemyToStop.health * 2);
+    }
+    
+  },
+  
+  resetPlayer: function() {
+    this.player.reset(this.game.world.centerX, this.game.world.height -50);
+    this.playerTimer.resume();
+    var emitter = this.game.add.emitter(this.x, this.y, 150);
     emitter.makeParticles('enemyParticle');
-    emitter.minParticleSpeed.setTo(-200, -200);
-    emitter.maxParticleSpeed.setTo(200, 200);
+    emitter.minParticleSpeed.setTo(-500, -500);
+    emitter.maxParticleSpeed.setTo(500, 500);
     emitter.gravity = 0;
-    emitter.start(true, 500, null, 100);
+    emitter.start(true, 1000, null, 150);
+  },
+  
+  killPlayer: function(){
+    var emitter = this.game.add.emitter(this.x, this.y, 150);
+    emitter.makeParticles('enemyParticle');
+    emitter.minParticleSpeed.setTo(-500, -500);
+    emitter.maxParticleSpeed.setTo(500, 500);
+    emitter.gravity = 0;
+    emitter.start(true, 1000, null, 150);
     this.player.kill();
     this.playerTimer.pause();
     this.youDied.play();
@@ -250,6 +292,7 @@ SpaceHipster.GameState = {
     //apply damage
     enemy.damage(2);
     bullet.kill();
+    
     if(enemy.health<=0){
       this.addPoints();
     }

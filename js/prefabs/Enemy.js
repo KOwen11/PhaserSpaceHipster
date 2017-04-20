@@ -38,12 +38,30 @@ SpaceHipster.Enemy.prototype.update = function(){
 
     if(this.top > this.game.world.height) {
         this.kill();
+        this.enemyTimer.pause();
+        console.log(SpaceHipster.GameState.missedEnemyCounter);
+        SpaceHipster.GameState.playerHealth -= 1;
+        console.log(SpaceHipster.GameState.missedEnemyCounter);
+        SpaceHipster.GameState.resetPlayer();
+        SpaceHipster.GameState.resetEnemies();
+        this.y = -100;
+        if(SpaceHipster.GameState.playerHealth <= 0){
+            SpaceHipster.GameState.killPlayer();
+        }
     }
+        
+        
+};
+
+SpaceHipster.Enemy.prototype.removeEnemy = function(){
+    SpaceHipster.Enemy.prototype.removeEnemy.call(this);
+    this.kill();
+    this.enemyTimer.pause();
 };
 
 SpaceHipster.Enemy.prototype.damage = function(amount){
   Phaser.Sprite.prototype.damage.call(this, amount);
-  
+  console.log(this.health);
   this.play('getHit');
   if(this.health <= 0){
       
@@ -57,6 +75,14 @@ SpaceHipster.Enemy.prototype.damage = function(amount){
       this.enemyTimer.pause();
   }
   
+};
+
+SpaceHipster.Enemy.prototype.pauseTimer = function(){
+    this.enemyTimer.pause();
+};
+
+SpaceHipster.Enemy.prototype.resumeTimer = function(){
+    this.enemyTimer.resume();
 };
 
 SpaceHipster.Enemy.prototype.scheduleShooting = function(){

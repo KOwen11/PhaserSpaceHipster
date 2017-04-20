@@ -14,7 +14,9 @@ SpaceHipster.PreloadState = {
         this.load.spritesheet('redEnemy', 'assets/images/red_enemy.png', 50, 46, 3, 1, 1);   
         this.load.spritesheet('greenEnemy', 'assets/images/green_enemy.png', 50, 46, 3, 1, 1);   
         this.load.audio('youDied', ['assets/audio/youDied.mp3', 'assets/audio/youDied.ogg']);
-        
+        this.load.audio('greenAudio', 'assets/audio/fastinvader1.wav');
+        this.load.audio('yellowAudio', 'assets/audio/fastinvader2.wav');
+        this.load.audio('redAudio', 'assets/audio/fastinvader3.wav');
     },
     
     create: function() {

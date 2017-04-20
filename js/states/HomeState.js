@@ -3,6 +3,7 @@ var SpaceHipster = SpaceHipster || {};
 SpaceHipster.HomeState = {
     create: function() {
         //add the scrolling background
+        this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.background = this.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'space');
         this.background.autoScroll(0, 30);
         
