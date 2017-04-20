@@ -46,12 +46,15 @@ SpaceHipster.Enemy.prototype.damage = function(amount){
   
   this.play('getHit');
   if(this.health <= 0){
+      
       var emitter = this.game.add.emitter(this.x, this.y, 100);
       emitter.makeParticles('enemyParticle');
       emitter.minParticleSpeed.setTo(-200, -200);
       emitter.maxParticleSpeed.setTo(200, 200);
       emitter.gravity = 0;
       emitter.start(true, 500, null, 100);
+      
+      this.enemyTimer.pause();
   }
   
 };

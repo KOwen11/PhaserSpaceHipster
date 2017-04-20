@@ -50,12 +50,12 @@ SpaceHipster.GameState = {
     //add bullets
     this.initBullets();
     this.initEnemyBullets();
-    this.playerShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/3, this.createPlayerBullet, this);
+    //this.playerShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/3, this.createPlayerBullet, this);
     //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
-    //this.playerTimer = this.game.time.create(false);
-    //this.playerTimer.start();
+    this.playerTimer = this.game.time.create(false);
+    this.playerTimer.start();
     
-    //this.schedulePlayerShooting();
+    this.schedulePlayerShooting();
     
     //initiate enemies
     this.initEnemies();
@@ -91,6 +91,12 @@ SpaceHipster.GameState = {
   },
   refreshScore: function(){
     this.scoreText.text = 'Score: ' + this.player.customParams.score;
+  },
+  
+  schedulePlayerShooting: function(){
+    this.createPlayerBullet();
+    //console.log(this.shootHz);
+    this.playerTimer.add(Phaser.Timer.SECOND / 5, this.schedulePlayerShooting, this);
   },
   
   clearStartText: function(){
@@ -211,6 +217,7 @@ SpaceHipster.GameState = {
         }
         
         enemy.reset(100,100, resetHp);
+        enemy.enemyTimer.resume();
         //this.enemyShootingTimer = this.game.time.events.loop(Phaser.Timer.SECOND/2, this.createEnemyBullet, this);
         //console.log(enemy.health);
       }
@@ -240,7 +247,7 @@ SpaceHipster.GameState = {
     emitter.gravity = 0;
     emitter.start(true, 500, null, 100);
     this.player.kill();
-
+    this.playerTimer.pause();
     this.youDied.play();
     //you died text
     var style3 = {font: '80px Arial', fill: 'red'};
